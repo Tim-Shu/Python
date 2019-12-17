@@ -1,0 +1,57 @@
+# -*-coding: utf-8 -*-
+import urllib.request
+import re
+import xlwt
+
+
+def get_content(page):
+    url = 'https://search.51job.com/list/020000,000000,0000,00,3,99,%2B,2,' + str(page) + '.html'
+    a = urllib.request.urlopen(url)
+    html = a.read().decode('gbk')
+    return html
+
+
+header = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 '
+                  'Safari/537.36',
+    'Connection': 'keep-alive',
+}
+
+
+def get(html):
+    reg = re.compile(r'<span class="t2"><a target="_blank" title="(.*?)" href="(.*?)".*? ', re.S)
+    items = re.findall(reg, html)
+    return
+
+
+def excel_write(items, index):
+    for item in items:
+        for i in range(0, 2):
+            ws.write(index, i, item[i])
+        print(index)
+        index += 1
+
+
+newTable = "51job_name.xls"
+wb = xlwt.Workbook(encoding='utf-8')
+ws = wb.add_sheet('sheet1')  # 建表格
+headDate = ['公司名称', '公司链接']
+for colnum in range(0, 2):
+    ws.write(0, colnum, headDate[colnum], xlwt.easyxf('font: bold on'))
+
+for each in range(1, 6):
+    index = (each - 1) * 50 + 1
+    excel_write(get(get_content(each)), index)
+
+wb.save(newTable)
+
+
+
+
+# for j in range(1, 6):
+# print('正在抓取第' + str(j) + '页数据ing...')
+# html = get_content(j)
+# for i in get(html):
+# with open('51job.txt', 'a', encoding='utf-8') as f:
+# f.write(i[0] + '\t' + i[1] + '\t' '\n')
+# f.close()

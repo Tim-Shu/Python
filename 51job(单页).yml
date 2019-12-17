@@ -1,0 +1,64 @@
+import requests
+from lxml import etree
+# 休眠
+import time
+# 随机数
+import random
+# ex表格
+import csv
+# 正则
+import re
+
+
+def Spider(date, keyword, page):
+    # 模拟头部
+    header = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 '
+                      'Safari/537.36',
+        'Connection': 'keep-alive',
+    }
+
+    # 保存数据 字典
+    data = {}
+    for i in range(1, page + 1):
+        print("正在获取第{}页数据".format(i))
+        url = 'https://search.51job.com/list/020000,000000,0000,00,%d,99,%s,2,%d.html' % (date, keyword, page)
+        res = requests.get(url)
+        res.encoding = 'gbk'
+        result = res.text
+
+        html = etree.HTML(result)
+        # 提取数据
+        page_list = html.xpath("//div[@class='dw_table']")
+        for Cid in page_list:
+            # 公司名称
+            company = Cid.xpath("./div/span/a/@title")
+            # 公司ID
+            href = Cid.xpath("./div/span/a/@href")
+            reg = re.compile(r"(?<=co)\d+")
+            match = reg.search('href')
+
+            print(match)
+
+            # 长度 公司名称 ID
+            for j in range(len(company)):
+                data[company[j]] = [href[j]]
+
+        # 休眠 随机数
+        time.sleep(1 + random.random())
+
+        # 保存数据
+        with open('51job.csv', 'w', newline="") as f:
+            # 打开ex
+            csvwrite = csv.writer(f, dialect=('excel'))
+            csvwrite.writerow(['公司名称', '公司ID', '公司官网', '电话'])
+
+            for name in data:
+                f = []
+                csvwrite.writerow([name, data[name][0]])
+
+
+# 时间：24小时 近3天 近1周 近1个月 0,1,2,3
+# 类型：全部%2B,java,python,UI...
+# 页码：1,2,3,4,5...2000
+Spider(0, '%2B', 1)
